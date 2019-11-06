@@ -60,6 +60,7 @@
               <li>Modifier la zone de focus de VoiceOver</li>
               <li>Modifier la taille des éléments</li>
               <li>Personnalisation</li>
+              <li>Détection</li>
             </ul>
 					</div>
 				</section>
@@ -1050,13 +1051,90 @@
               <li><a href="https://a11y-guidelines.orange.com/mobile/criteria-ios-wwdc-19000.html#AccessibilityCustomActions" target="_blank">Utiliser les actions personnalisées</a></li>
             </ul>
           </section>
-          
+        </section>
+  
+        <!-- Options d’accessibilité -->
+        <section>
+          <section>
+            <h2>Options d’accessibilité</h2>
+            <p>
+              Est-ce que VoiceOver est activé ? Est-ce que le mode audio-mono est activé ?
+            </p>
+            <p> 
+              Plusieurs fonctions du framework UIKit permettent de connaître le statut de ces options d'accessibilité.<br> 
+              La plus utile est certainement celle qui permet de savoir si VoiceOver est activé au moment de l’appel (<code>UIAccessibilityIsVoiceOverRunning</code>). 
+            </p>
+            <pre><code class="swift" data-trim data-line-numbers="1-30">
+              let isVoiceOverRunning = (UIAccessibility.isVoiceOverRunning ? 1 : 0)
+              let isSwitchControlRunning = (UIAccessibility.isSwitchControlRunning ? 1 : 0)
+
+              print("VoiceOver vaut \(isVoiceOverRunning) et SwichControl vaut \(isSwitchControlRunning).")
+            </code></pre>
+          </section>
+          <section>
+            <h3>Événements</h3>
+            <p>
+              Le système iOS envoie un certain nombre d’événements d’accessibilité à destination des applications lors de la modification des options d’accessibilité.
+            </p>
+            <p style="font-size: 0.8em;">
+              Par exemple, si VoiceOver est désactivé durant l’utilisation de l’application, l’événement <code>UIAccessibilityVoiceOverStatusDidChangeNotification</code> est reçu, 
+              ce qui peut être très utile couplé à la fonction <code>UIAccessibilityIsVoiceOverRunning</code> grâce à laquelle on peut exécuter un traitement particulier quand VoiceOver est activé. 
+            </p>
+            <p>
+              </p>
+          </section>
+          <section>
+            <h3>Code</h3>
+            <p style="font-size: 0.8em;">
+              Mais que se passe-t-il si VoiceOver est désactivé alors que ce traitement a déjà eu lieu ? <br>
+              En restant à l'écoute des événements système, il est possible d’appliquer des traitements spécifiques de manière dynamique.
+            </p>
+            <pre><code class="swift" data-trim data-line-numbers="1-30">
+              // Dans cet exemple, on appelle une méthode spécifique 
+              // au moment où le statut de VoiceOver ou du Switch Control change.
+              override func viewDidAppear(_ animated: Bool) {
+                  super.viewDidAppear(animated)
+
+                  NotificationCenter.default.addObserver(
+                    self,
+                    selector: #selector(methodToBeCalled(notification:)),
+                    name: UIAccessibility.switchControlStatusDidChangeNotification,
+                    object: nil)
+
+                  NotificationCenter.default.addObserver(
+                    self,
+                    selector: #selector(methodToBeCalled(notification:)),
+                    name: UIAccessibility.voiceOverStatusDidChangeNotification,
+                    object: nil)
+              }
+
+              @objc private func methodToBeCalled(notification: Notification) {
+
+                  let switchControlStatus = (UIAccessibility.isSwitchControlRunning ? "OK" : "NOK")
+                  let voiceOverStatus = (UIAccessibility.isVoiceOverRunning ? "OK" : "NOK")
+
+                  print("SWITCH CONTROL est \(switchControlStatus) et VOICE OVER est \(voiceOverStatus).")
+              }
+            </code></pre>
+          </section>
+          <section>
+            <div>
+              <h3>
+                Ressources
+              </h3>
+              <ul>
+                <li><a href="https://a11y-guidelines.orange.com/mobile/criteria-ios-conception.html#options-d-accessibilit-" target="_blank">Options d'accessibilité (conception iOS)</a></li>
+                <li><a href="https://developer.apple.com/documentation/uikit/accessibility/notification_names" target="_blank">Notification Names</a></li>
+                <li><a href="https://developer.apple.com/documentation/uikit/accessibility" target="_blank">Accessibility (documentation Apple)</a></li>
+              </ul>
+            </div>
+          </section>
         </section>
   
         <section>
           <h3>Merci de votre participation, mais il est toujours temps pour des questions...</h3>
           <p>
-            Le contenu de cette présentation est largement redevable à la <a href="https://a11y-guidelines.orange.com/mobile/criteria-ios.html">documentation proposée par Orange</a> dont elle synthétise les points principaux<br>.
+            Le contenu de cette présentation est largement redevable à la <a href="https://a11y-guidelines.orange.com/mobile/criteria-ios.html">documentation proposée par Orange</a> dont elle synthétise les points principaux.<br>
             Comme la documentation originale, cette présentation est sous <a href="https://creativecommons.org/licenses/by-sa/3.0/fr/">licence CC BY SA 3.0</a>.
           </p>
           <p>
